@@ -1251,12 +1251,12 @@
 
                     
                     <!-- Správa zařízení/strojů -->
-                    <h4 style=\"margin-top: 16px;\">Zařízení / Stroje</h4>
-                    <div id=\"machines-settings-list\"></div>
-                    <div class=\"core-data-item\">
-                        <input type=\"text\" id=\"new-machines-key\" placeholder=\"Klíč (bez diakritiky)\" class=\"form-input\">
-                        <input type=\"text\" id=\"new-machines-value\" placeholder=\"Název zařízení / stroje\" class=\"form-input\">
-                        <button class=\"btn btn-success\" onclick=\"addCoreDataItem('machines')\">➕</button>
+                    <h4 style="margin-top: 16px;">Zařízení / Stroje</h4>
+                    <div id="machines-settings-list"></div>
+                    <div class="core-data-item">
+                        <input type="text" id="new-machines-key" placeholder="Klíč (bez diakritiky)" class="form-input">
+                        <input type="text" id="new-machines-value" placeholder="Název zařízení / stroje" class="form-input">
+                        <button class="btn btn-success" onclick="addCoreDataItem('machines')">➕</button>
                     </div>
                     <!-- Správa priorit -->
                     <h4 style="margin-top: 16px;">Priority</h4>
@@ -1298,6 +1298,11 @@
             sortConfig: { key: 'name', direction: 'ascending' }
         };
 
+// Dočasný přepínač přihlášení – během testování zapnuto
+const AUTH_DISABLED = true; // ← přepnout na false po testování
+
+
+
         const permissionPresets = {
             admin: { canEditParts: true, canDeleteParts: true, canCreateOrders: true, canCreateTransfers: true, canManageUsers: true, canViewReports: true, canAddMasterPart: true, canManageSettings: true, canManageSuppliers: true, canPerformInventory: true },
             vedouci_skladu: { canEditParts: true, canDeleteParts: false, canCreateOrders: true, canCreateTransfers: true, canManageUsers: false, canViewReports: true, canAddMasterPart: true, canManageSettings: false, canManageSuppliers: true, canPerformInventory: true },
@@ -1309,6 +1314,33 @@
 
         // --- Inicializace ---
         document.addEventListener('DOMContentLoaded', () => {
+
+// --- AUTH_DISABLED: auto-login jako Test Admin ---
+if (typeof AUTH_DISABLED !== 'undefined' && AUTH_DISABLED) {
+  try { loadStateFromLocalStorage(); } catch (e) {}
+  try { if (localStorage.getItem('darkMode') === 'true') { document.body.classList.add('dark-mode'); } } catch (e) {}
+  window.state = window.state || {};
+  state.currentUser = {
+    id: -999,
+    name: 'Test Admin',
+    email: 'test@local',
+    role: 'admin',
+    permissions: (typeof permissionPresets !== 'undefined' && permissionPresets && permissionPresets.admin) ? permissionPresets.admin : {
+      canEditParts: true, canDeleteParts: true, canCreateOrders: true, canCreateTransfers: true,
+      canManageUsers: true, canViewReports: true, canAddMasterPart: true, canManageSettings: true,
+      canManageSuppliers: true, canPerformInventory: true
+    },
+    warehouses: null,
+    forcePasswordChange: false,
+    dashboard: { pinnedParts: [], pinnedCharts: [], dashboardScope: 'all' }
+  };
+  var ls = document.getElementById('login-screen'); if (ls) ls.classList.add('hidden');
+  var app = document.getElementById('app-container'); if (app) app.classList.remove('hidden');
+  if (typeof initializeApp === 'function') { initializeApp(); }
+  try { console.warn('⚠️ AUTH DISABLED: běžím jako Test Admin'); } catch (e) {}
+  return;
+}
+
             loadStateFromLocalStorage();
             if (localStorage.getItem('darkMode') === 'true') {
                 document.body.classList.add('dark-mode');
