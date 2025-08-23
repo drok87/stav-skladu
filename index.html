@@ -745,6 +745,30 @@
             align-items: center;
         }
 
+        /*
+         * Pole v řádcích "Důvody výdeje" a v dalších číselnících jsou
+         * výchozí šířky 100 %, což ve flex kontejnerech způsobuje přetékání
+         * a překrývání. Upravíme jejich flex chování, aby se šířka
+         * přizpůsobila dostupnému prostoru a text se nezkracoval.
+         */
+        #dispense-reasons-list .reason-item input.form-input,
+        .core-data-item input.form-input {
+            flex: 1 1 auto;
+            width: auto;
+            min-width: 0;
+        }
+
+        /* Upravíme také pole pro přidání nového důvodu výdeje, aby se
+         * chovala flexibilně. Díky flex hodnotám se vstupy roztáhnou
+         * rovnoměrně podle dostupné šířky a nebudou přesahovat.
+         */
+        #new-reason-key,
+        #new-reason-value {
+            flex: 1 1 auto;
+            width: auto;
+            min-width: 0;
+        }
+
         /* Inventura */
         #inventory-session-view .inventory-item {
             display: grid;
@@ -776,39 +800,68 @@
             .main-nav-buttons { flex-direction: column; }
             .login-box { padding: 24px; }
         }
+
+        /* Jazykový přepínač na přihlašovací obrazovce */
+        .lang-selector {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .lang-selector span {
+            cursor: pointer;
+            font-size: 24px;
+        }
+        .lang-selector span.active {
+            filter: grayscale(0);
+        }
+        .lang-selector span.inactive {
+            filter: grayscale(1);
+            opacity: 0.6;
+        }
     </style>
 </head>
 <body>
 
     <div id="login-screen">
         <div class="login-box">
-            <h1>Přihlášení</h1>
-            <p>Vítejte v systému správy náhradních dílů</p>
+            <!-- Jazykový přepínač: umožní uživateli vybrat češtinu nebo angličtinu -->
+            <div class="lang-selector">
+                <!-- Česká vlajka 🇨🇿 (unicode U+1F1E8 U+1F1FF) -->
+                <span id="flag-cs" onclick="setLanguage('cs')">🇨🇿</span>
+                <!-- Britská vlajka 🇬🇧 (unicode U+1F1EC U+1F1E7) -->
+                <span id="flag-en" onclick="setLanguage('en')">🇬🇧</span>
+            </div>
+            <h1 data-i18n="login_title">Přihlášení</h1>
+            <p data-i18n="login_welcome">Vítejte v systému správy náhradních dílů</p>
             <div class="form-group">
-                <label for="login-email">Email</label>
-                <input type="email" id="login-email" class="form-input" placeholder="vas.email@firma.cz">
+                <label for="login-email" data-i18n="login_email_label">Email</label>
+                <input type="email" id="login-email" class="form-input" data-placeholder-i18n="login_email_placeholder" placeholder="vas.email@firma.cz">
             </div>
             <div class="form-group">
-                <label for="login-password">Heslo</label>
-                <input type="password" id="login-password" class="form-input" placeholder="••••••••">
+                <label for="login-password" data-i18n="login_password_label">Heslo</label>
+                <input type="password" id="login-password" class="form-input" data-placeholder-i18n="login_password_placeholder" placeholder="••••••••">
             </div>
-            <button class="btn btn-primary" style="width: 100%; padding: 12px;" onclick="handleLogin()">Přihlásit se</button>
+            <button class="btn btn-primary" style="width: 100%; padding: 12px;" onclick="handleLogin()" data-i18n="login_button">Přihlásit se</button>
             <p id="login-error"></p>
+            <p style="margin-top:8px; font-size:0.875rem; text-align:center;">
+                <a href="#" onclick="showForgotPasswordDialog(); return false;" data-i18n="forgot_password" style="color: var(--accent-blue); text-decoration: underline;">Zapomněli jste heslo?</a>
+            </p>
         </div>
     </div>
 
     <div id="app-container" class="container hidden">
         <div class="header">
             <div>
-                <h1>Systém správy náhradních dílů v13</h1>
-                <p>Kompletní řešení pro evidenci, hlídání a správu skladových zásob</p>
+                <h1 data-i18n="app_title">Systém správy náhradních dílů v13</h1>
+                <p data-i18n="app_description">Kompletní řešení pro evidenci, hlídání a správu skladových zásob</p>
             </div>
             <div class="header-right">
                 <div class="notifications-bell" onclick="toggleNotifications()">
                     🔔
                     <div id="notification-badge" class="notification-badge hidden">0</div>
                     <div id="notifications-panel" class="notifications-panel hidden">
-                        <div class="notifications-panel-header">Oznámení</div>
+                        <div class="notifications-panel-header" data-i18n="notifications_header">Oznámení</div>
                         <div class="notifications-list" id="notifications-list"></div>
                     </div>
                 </div>
@@ -817,10 +870,10 @@
                     <div class="user-name" id="current-user-name"></div>
                     <div class="user-role" id="current-user-role"></div>
                     <div class="user-actions">
-                        <button class="btn btn-secondary" onclick="showChangePasswordModal()" style="padding: 4px 8px; font-size: 0.75rem;">
+                        <button class="btn btn-secondary" onclick="showChangePasswordModal()" style="padding: 4px 8px; font-size: 0.75rem;" data-i18n="change_password">
                             Změnit heslo
                         </button>
-                        <button class="btn btn-secondary" onclick="handleLogout()" style="padding: 4px 8px; font-size: 0.75rem;">
+                        <button class="btn btn-secondary" onclick="handleLogout()" style="padding: 4px 8px; font-size: 0.75rem;" data-i18n="logout">
                             Odhlásit
                         </button>
                     </div>
@@ -830,18 +883,18 @@
 
         <div class="main-nav">
             <div class="main-nav-buttons">
-                <button class="main-nav-button active" onclick="showTab('dashboard')">📊 Dashboard</button>
-                <button class="main-nav-button" onclick="showTab('inventory')">📦 Sklad</button>
-                <button class="main-nav-button" onclick="showTab('machines')">🏗️ Zařízení</button>
-                <button class="main-nav-button" onclick="showTab('suppliers')">🏭 Dodavatelé</button>
-                <button class="main-nav-button" onclick="showTab('orders')">🛒 Objednávky</button>
-                <button class="main-nav-button" onclick="showTab('transfers')">🔄 Přesuny</button>
-                <button class="main-nav-button" onclick="showTab('inventory-module')">✔️ Inventura</button>
-                <button class="main-nav-button" onclick="showTab('transactions')">📋 Transakce</button>
-                <button class="main-nav-button" onclick="showTab('reports')">📈 Reporty</button>
-                <button class="main-nav-button" onclick="showTab('users')">👥 Uživatelé</button>
-                <button class="main-nav-button" onclick="showTab('audit-log')">🛡️ Audit Log</button>
-                <button class="main-nav-button" onclick="showTab('settings')">⚙️ Nastavení</button>
+                <button class="main-nav-button active" onclick="showTab('dashboard')">📊 <span data-i18n="nav_dashboard">Dashboard</span></button>
+                <button class="main-nav-button" onclick="showTab('inventory')">📦 <span data-i18n="nav_inventory">Sklad</span></button>
+                <button class="main-nav-button" onclick="showTab('machines')">🏗️ <span data-i18n="nav_machines">Zařízení</span></button>
+                <button class="main-nav-button" onclick="showTab('suppliers')">🏭 <span data-i18n="nav_suppliers">Dodavatelé</span></button>
+                <button class="main-nav-button" onclick="showTab('orders')">🛒 <span data-i18n="nav_orders">Objednávky</span></button>
+                <button class="main-nav-button" onclick="showTab('transfers')">🔄 <span data-i18n="nav_transfers">Přesuny</span></button>
+                <button class="main-nav-button" onclick="showTab('inventory-module')">✔️ <span data-i18n="nav_inventory_module">Inventura</span></button>
+                <button class="main-nav-button" onclick="showTab('transactions')">📋 <span data-i18n="nav_transactions">Transakce</span></button>
+                <button class="main-nav-button" onclick="showTab('reports')">📈 <span data-i18n="nav_reports">Reporty</span></button>
+                <button class="main-nav-button" onclick="showTab('users')">👥 <span data-i18n="nav_users">Uživatelé</span></button>
+                <button class="main-nav-button" onclick="showTab('audit-log')">🛡️ <span data-i18n="nav_audit_log">Audit Log</span></button>
+                <button class="main-nav-button" onclick="showTab('settings')">⚙️ <span data-i18n="nav_settings">Nastavení</span></button>
             </div>
         </div>
 
@@ -849,23 +902,23 @@
             <div class="stats">
                 <div class="stat-card" onclick="showTab('inventory')">
                     <div class="stat-icon stat-blue">📦</div>
-                    <div class="stat-content"><h3>Celkem dílů na skladě</h3><p class="stat-blue" id="total-parts">0</p></div>
+                    <div class="stat-content"><h3 data-i18n="stat_total_parts">Celkem dílů na skladě</h3><p class="stat-blue" id="total-parts">0</p></div>
                 </div>
                 <div class="stat-card" onclick="showLowStockReport()">
                     <div class="stat-icon stat-red">⚠️</div>
-                    <div class="stat-content"><h3>Nízký stav</h3><p class="stat-red" id="low-stock-parts">0</p></div>
+                    <div class="stat-content"><h3 data-i18n="stat_low_stock">Nízký stav</h3><p class="stat-red" id="low-stock-parts">0</p></div>
                 </div>
                 <div class="stat-card" onclick="showCriticalPartsReport()">
                     <div class="stat-icon stat-orange">🚨</div>
-                    <div class="stat-content"><h3>Kritické díly</h3><p class="stat-orange" id="critical-parts">0</p></div>
+                    <div class="stat-content"><h3 data-i18n="stat_critical_parts">Kritické díly</h3><p class="stat-orange" id="critical-parts">0</p></div>
                 </div>
                 <div class="stat-card" onclick="showTotalValueDetails()">
                     <div class="stat-icon stat-green">💰</div>
-                    <div class="stat-content"><h3>Hodnota skladu</h3><p class="stat-green" id="total-value">0 Kč</p></div>
+                    <div class="stat-content"><h3 data-i18n="stat_total_value">Hodnota skladu</h3><p class="stat-green" id="total-value">0 Kč</p></div>
                 </div>
             </div>
             <div id="personalized-dashboard" class="hidden" style="margin-top: 24px;">
-                <h2>Připnuté položky</h2>
+                <h2 data-i18n="pinned_items_heading">Připnuté položky</h2>
                 <div id="pinned-items-container" class="stats"></div>
             </div>
         </div>
@@ -875,7 +928,7 @@
                 <div class="filters-row">
                     <div class="filters-left">
                         <div class="search-box">
-                            <input type="text" class="search-input" placeholder="Hledat podle názvu, kódu..." id="search-input">
+                            <input type="text" class="search-input" data-placeholder-i18n="search_placeholder" placeholder="Hledat podle názvu, kódu..." id="search-input">
                             <div class="search-icon">🔍</div>
                         </div>
                         <select class="filter-select" id="warehouse-filter"></select>
@@ -883,8 +936,8 @@
                         <select class="filter-select" id="machine-filter"></select>
                     </div>
                     <div class="filters-right">
-                        <button id="new-part-btn" class="btn btn-primary" onclick="showPartModal()">➕ Zavést nový typ dílu</button>
-                        <button class="btn btn-success" onclick="showAssignPartModal()">📥 Naskladnit díl</button>
+                        <button id="new-part-btn" class="btn btn-primary" onclick="showPartModal()">➕ <span data-i18n="add_part_button">Zavést nový typ dílu</span></button>
+                        <button class="btn btn-success" onclick="showAssignPartModal()">📥 <span data-i18n="stock_in_button">Naskladnit díl</span></button>
                     </div>
                 </div>
             </div>
@@ -958,7 +1011,7 @@
                 <div class="filters-row">
                     <div class="filters-left">
                         <div class="search-box">
-                            <input type="text" class="search-input" placeholder="Hledat zařízení..." id="machine-search-input">
+                            <input type="text" class="search-input" data-placeholder-i18n="search_machines_placeholder" placeholder="Hledat zařízení..." id="machine-search-input">
                             <div class="search-icon">🔍</div>
                         </div>
                     </div>
@@ -968,16 +1021,16 @@
                 <table class="table" id="machines-table">
                     <thead>
                         <tr>
-                            <th>Název</th>
-                            <th>Počet dílů</th>
-                            <th>Kritické</th>
-                            <th>Hodnota zásob</th>
-                            <th>Akce</th>
+                            <th data-i18n="th_name">Název</th>
+                            <th data-i18n="th_num_parts">Počet dílů</th>
+                            <th data-i18n="th_critical">Kritické</th>
+                            <th data-i18n="th_inventory_value">Hodnota zásob</th>
+                            <th data-i18n="th_actions">Akce</th>
                         </tr>
                     </thead>
                     <tbody id="machines-table-body"></tbody>
                 </table>
-                <div id="machines-no-results" class="empty-state hidden">Žádná zařízení k zobrazení.</div>
+                <div id="machines-no-results" class="empty-state hidden" data-i18n="machines_no_results">Žádná zařízení k zobrazení.</div>
             </div>
         </div>
 <div id="tab-suppliers" class="tab-content hidden">
@@ -987,7 +1040,7 @@
                     <button class="btn btn-primary" onclick="showSupplierModal()">➕ Nový dodavatel</button>
                 </div>
                 <table class="table">
-                    <thead><tr><th>Název</th><th>IČO</th><th>Kontakt</th><th>Email</th><th>Akce</th></tr></thead>
+                    <thead><tr><th data-i18n="th_name">Název</th><th data-i18n="th_ico">IČO</th><th data-i18n="th_contact">Kontakt</th><th data-i18n="th_email">Email</th><th data-i18n="th_actions">Akce</th></tr></thead>
                     <tbody id="suppliers-table-body"></tbody>
                 </table>
                  <div id="no-suppliers-message" class="no-results hidden"><div class="icon">🏭</div><h3>Žádní dodavatelé</h3><p>Zatím jste nezadali žádného dodavatele.</p></div>
@@ -1004,7 +1057,7 @@
                     </div>
                 </div>
                 <table class="table">
-                    <thead><tr><th>Číslo</th><th>Dodavatel</th><th>Položky</th><th>Cena</th><th>Stav</th><th>Vytvořeno</th><th>Akce</th></tr></thead>
+                    <thead><tr><th data-i18n="th_number">Číslo</th><th data-i18n="th_supplier">Dodavatel</th><th data-i18n="th_items">Položky</th><th data-i18n="th_price">Cena</th><th data-i18n="th_status">Stav</th><th data-i18n="th_created">Vytvořeno</th><th data-i18n="th_actions">Akce</th></tr></thead>
                     <tbody id="orders-table-body"></tbody>
                 </table>
                 <div id="no-orders-message" class="no-results hidden"><div class="icon">🛒</div><h3>Žádné objednávky</h3></div>
@@ -1018,7 +1071,7 @@
                     <div class="table-actions"><button class="btn btn-primary" onclick="showCreateTransferModal()">➕ Nový přesun</button></div>
                 </div>
                 <table class="table">
-                    <thead><tr><th>Číslo</th><th>Díl</th><th>Z</th><th>Do</th><th>Množství</th><th>Stav</th><th>Datum</th><th>Akce</th></tr></thead>
+                    <thead><tr><th data-i18n="th_number">Číslo</th><th data-i18n="th_part">Díl</th><th data-i18n="th_from">Z</th><th data-i18n="th_to">Do</th><th data-i18n="th_quantity">Množství</th><th data-i18n="th_status">Stav</th><th data-i18n="th_date">Datum</th><th data-i18n="th_actions">Akce</th></tr></thead>
                     <tbody id="transfers-table-body"></tbody>
                 </table>
                 <div id="no-transfers-message" class="no-results hidden"><div class="icon">🔄</div><h3>Žádné přesuny</h3></div>
@@ -1033,7 +1086,7 @@
                         <button class="btn btn-primary" onclick="showStartInventoryModal()">➕ Nová inventura</button>
                     </div>
                     <table class="table">
-                        <thead><tr><th>Sklad</th><th>Datum zahájení</th><th>Stav</th><th>Zpracoval</th><th>Akce</th></tr></thead>
+                        <thead><tr><th data-i18n="th_warehouse">Sklad</th><th data-i18n="th_start_date">Datum zahájení</th><th data-i18n="th_status">Stav</th><th data-i18n="th_processed_by">Zpracoval</th><th data-i18n="th_actions">Akce</th></tr></thead>
                         <tbody id="inventory-list-body"></tbody>
                     </table>
                     <div id="no-inventory-message" class="no-results hidden"><div class="icon">✔️</div><h3>Žádné inventury</h3><p>Zahajte novou inventuru pro kontrolu skladu.</p></div>
@@ -1062,7 +1115,7 @@
                     </div>
                 </div>
                 <table class="table" id="transactions-table">
-                    <thead><tr><th>Datum</th><th>Typ</th><th>Díl</th><th>Množství</th><th>Důvod/Poznámka</th><th>Uživatel</th></tr></thead>
+                    <thead><tr><th data-i18n="th_date">Datum</th><th data-i18n="th_type">Typ</th><th data-i18n="th_part">Díl</th><th data-i18n="th_quantity">Množství</th><th data-i18n="th_reason_note">Důvod/Poznámka</th><th data-i18n="th_user">Uživatel</th></tr></thead>
                     <tbody id="transactions-table-body"></tbody>
                 </table>
                 <div id="no-transactions-message" class="no-results hidden"><div class="icon">📋</div><h3>Žádné transakce</h3></div>
@@ -1091,7 +1144,7 @@
                     <div class="table-actions"><button class="btn btn-primary" onclick="showAddUserModal()">➕ Přidat uživatele</button></div>
                 </div>
                 <table class="table">
-                    <thead><tr><th>Jméno</th><th>Email</th><th>Role</th><th>Sklady</th><th>Akce</th></tr></thead>
+                    <thead><tr><th data-i18n="th_name">Jméno</th><th data-i18n="th_email">Email</th><th data-i18n="th_role">Role</th><th data-i18n="th_warehouses">Sklady</th><th data-i18n="th_actions">Akce</th></tr></thead>
                     <tbody id="users-table-body"></tbody>
                 </table>
             </div>
@@ -1108,10 +1161,10 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Datum</th>
-                            <th>Uživatel</th>
-                            <th>Akce</th>
-                            <th>Detail</th>
+                            <th data-i18n="th_date">Datum</th>
+                            <th data-i18n="th_user">Uživatel</th>
+                            <th data-i18n="th_actions">Akce</th>
+                            <th data-i18n="th_detail">Detail</th>
                         </tr>
                     </thead>
                     <tbody id="audit-log-table-body"></tbody>
@@ -1129,28 +1182,30 @@
                 <div class="settings-card">
                     <h3>Správa dat</h3>
                     <p class="text-secondary-color" style="margin-bottom: 16px;">Zálohujte všechna data aplikace do souboru nebo je obnovte ze zálohy.</p>
-                    <div style="display: flex; gap: 12px;">
-                        <button class="btn btn-success" onclick="backupData()">💾 Stáhnout zálohu</button>
-                        <button class="btn btn-warning" onclick="document.getElementById('restore-input').click()">📤 Nahrát ze zálohy</button>
+                    <!-- Zálohování: dvě tlačítka vedle sebe a skryté input pole -->
+                    <div class="backup-buttons" style="display: flex; gap: 12px;">
+                        <button class="btn btn-success" onclick="backupData()" style="flex: 1;">💾 Stáhnout zálohu</button>
+                        <button class="btn btn-warning" onclick="document.getElementById('restore-input').click()" style="flex: 1;">📤 Nahrát ze zálohy</button>
                         <input type="file" id="restore-input" class="hidden" accept=".json" onchange="restoreData(event)">
-                    
-<div class="card" style="margin-top:16px; padding:16px; border:1px solid #e5e7eb; border-radius:12px;">
-  <h3 style="margin:0 0 8px 0;">Nastavení SKU</h3>
-  <div style="display:grid; grid-template-columns: 1fr 1fr auto; gap:12px; align-items:end;">
-    <div>
-      <label>Prefix</label>
-      <input id="sku-prefix-input" class="input" placeholder="např. SKU-">
-    </div>
-    <div>
-      <label>Počet číslic</label>
-      <input id="sku-digits-input" class="input" type="number" min="1" max="12" placeholder="např. 6">
-    </div>
-    <div>
-      <button class="btn btn-primary" onclick="saveSkuSettings()">Uložit</button>
-    </div>
-  </div>
-  <div style="margin-top:10px; font-size:13px;">Další v řadě: <strong id="sku-next-preview">—</strong></div>
-</div>
+                    </div>
+                    <!-- Karta pro nastavení SKU umístěná pod tlačítky, aby nedocházelo k překrývání -->
+                    <div class="card" style="margin-top: 16px; padding: 16px; border: 1px solid var(--border-light-color); border-radius: 12px; background: var(--bg-tertiary-color);">
+                        <h3 style="margin: 0 0 8px 0;">Nastavení SKU</h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: end;">
+                            <div>
+                                <label>Prefix</label>
+                                <input id="sku-prefix-input" class="input" placeholder="např. SKU-">
+                            </div>
+                            <div>
+                                <label>Počet číslic</label>
+                                <input id="sku-digits-input" class="input" type="number" min="1" max="12" placeholder="např. 6">
+                            </div>
+                            <div>
+                                <button class="btn btn-primary" onclick="saveSkuSettings()">Uložit</button>
+                            </div>
+                        </div>
+                        <div style="margin-top: 10px; font-size: 13px;">Další v řadě: <strong id="sku-next-preview">—</strong></div>
+                    </div>
 <script>
 (function(){
   function ensureSkuSettings(){
@@ -1222,8 +1277,9 @@
                     <p class="text-secondary-color" style="margin-bottom: 16px;">Spravujte předdefinované možnosti pro důvod výdeje dílu ze skladu.</p>
                     <div id="dispense-reasons-list"></div>
                     <div style="display: flex; gap: 12px; margin-top: 16px;">
-                        <input type="text" id="new-reason-key" placeholder="Klíč (např. oprava)" class="form-input">
-                        <input type="text" id="new-reason-value" placeholder="Text (např. Oprava zařízení)" class="form-input">
+                        <!-- Zkrácené názvy, aby se v úzkém sloupci nepřetékaly -->
+                        <input type="text" id="new-reason-key" placeholder="Klíč" class="form-input">
+                        <input type="text" id="new-reason-value" placeholder="Popis" class="form-input">
                         <button class="btn btn-success" onclick="addDispenseReason()">➕</button>
                     </div>
                 </div>
@@ -1235,7 +1291,7 @@
                     <h4>Sklady</h4>
                     <div id="warehouses-settings-list"></div>
                     <div class="core-data-item">
-                        <input type="text" id="new-warehouses-key" placeholder="Klíč (5 znaků)" class="form-input" maxlength="5">
+                        <input type="text" id="new-warehouses-key" placeholder="Klíč (5 zn.)" class="form-input" maxlength="5">
                         <input type="text" id="new-warehouses-value" placeholder="Název skladu" class="form-input">
                         <button class="btn btn-success" onclick="addCoreDataItem('warehouses')">➕</button>
                     </div>
@@ -1244,7 +1300,7 @@
                     <h4 style="margin-top: 16px;">Kategorie</h4>
                     <div id="categories-settings-list"></div>
                     <div class="core-data-item">
-                        <input type="text" id="new-categories-key" placeholder="Klíč (bez diakritiky)" class="form-input">
+                        <input type="text" id="new-categories-key" placeholder="Klíč" class="form-input">
                         <input type="text" id="new-categories-value" placeholder="Název kategorie" class="form-input">
                         <button class="btn btn-success" onclick="addCoreDataItem('categories')">➕</button>
                     </div>
@@ -1254,15 +1310,15 @@
                     <h4 style="margin-top: 16px;">Zařízení / Stroje</h4>
                     <div id="machines-settings-list"></div>
                     <div class="core-data-item">
-                        <input type="text" id="new-machines-key" placeholder="Klíč (bez diakritiky)" class="form-input">
-                        <input type="text" id="new-machines-value" placeholder="Název zařízení / stroje" class="form-input">
+                        <input type="text" id="new-machines-key" placeholder="Klíč" class="form-input">
+                        <input type="text" id="new-machines-value" placeholder="Název zařízení" class="form-input">
                         <button class="btn btn-success" onclick="addCoreDataItem('machines')">➕</button>
                     </div>
                     <!-- Správa priorit -->
                     <h4 style="margin-top: 16px;">Priority</h4>
                     <div id="priorities-settings-list"></div>
                     <div class="core-data-item">
-                        <input type="text" id="new-priorities-key" placeholder="Klíč (písmeno)" class="form-input" maxlength="1">
+                        <input type="text" id="new-priorities-key" placeholder="Klíč" class="form-input" maxlength="1">
                         <input type="text" id="new-priorities-value" placeholder="Název priority" class="form-input">
                         <button class="btn btn-success" onclick="addCoreDataItem('priorities')">➕</button>
                     </div>
@@ -1299,7 +1355,230 @@
         };
 
 // Dočasný přepínač přihlášení – během testování zapnuto
-const AUTH_DISABLED = true; // ← přepnout na false po testování
+// Pro ostrý provoz je nutné mít přihlašování aktivní, proto je hodnota nastavena na false.
+const AUTH_DISABLED = false; // přihlášení je povoleno pro ostrý provoz
+
+        // --- Jazykové překlady a přepínač ---
+        // Definice překladů pro jednotlivé klíče. Čeština (cs) a angličtina (en).
+        const translations = {
+            cs: {
+                login_title: 'Přihlášení',
+                login_welcome: 'Vítejte v systému správy náhradních dílů',
+                login_email_label: 'Email',
+                login_email_placeholder: 'vas.email@firma.cz',
+                login_password_label: 'Heslo',
+                login_password_placeholder: '••••••••',
+                login_button: 'Přihlásit se',
+                app_title: 'Systém správy náhradních dílů v13',
+                app_description: 'Kompletní řešení pro evidenci, hlídání a správu skladových zásob',
+                notifications_header: 'Oznámení',
+                change_password: 'Změnit heslo',
+                logout: 'Odhlásit',
+                nav_dashboard: 'Dashboard',
+                nav_inventory: 'Sklad',
+                nav_machines: 'Zařízení',
+                nav_suppliers: 'Dodavatelé',
+                nav_orders: 'Objednávky',
+                nav_transfers: 'Přesuny',
+                nav_inventory_module: 'Inventura',
+                nav_transactions: 'Transakce',
+                nav_reports: 'Reporty',
+                nav_users: 'Uživatelé',
+                nav_audit_log: 'Audit Log',
+                nav_settings: 'Nastavení',
+                stat_total_parts: 'Celkem dílů na skladě',
+                stat_low_stock: 'Nízký stav',
+                stat_critical_parts: 'Kritické díly',
+                stat_total_value: 'Hodnota skladu',
+                pinned_items_heading: 'Připnuté položky',
+                search_placeholder: 'Hledat podle názvu, kódu...',
+                add_part_button: 'Zavést nový typ dílu',
+                stock_in_button: 'Naskladnit díl'
+                ,filter_all_warehouses: 'Všechny sklady'
+                ,filter_all_categories: 'Všechny kategorie'
+                ,filter_all_machines: 'Všechna zařízení'
+                ,th_name: 'Název'
+                ,th_num_parts: 'Počet dílů'
+                ,th_critical: 'Kritické'
+                ,th_inventory_value: 'Hodnota zásob'
+                ,th_actions: 'Akce'
+                ,th_ico: 'IČO'
+                ,th_contact: 'Kontakt'
+                ,th_email: 'Email'
+                ,th_number: 'Číslo'
+                ,th_supplier: 'Dodavatel'
+                ,th_items: 'Položky'
+                ,th_price: 'Cena'
+                ,th_status: 'Stav'
+                ,th_created: 'Vytvořeno'
+                ,th_part: 'Díl'
+                ,th_from: 'Z'
+                ,th_to: 'Do'
+                ,th_quantity: 'Množství'
+                ,th_date: 'Datum'
+                ,th_warehouse: 'Sklad'
+                ,th_start_date: 'Datum zahájení'
+                ,th_processed_by: 'Zpracoval'
+                ,th_type: 'Typ'
+                ,th_reason_note: 'Důvod/Poznámka'
+                ,th_user: 'Uživatel'
+                ,th_role: 'Role'
+                ,th_warehouses: 'Sklady'
+                ,th_detail: 'Detail'
+                ,machines_no_results: 'Žádná zařízení k zobrazení.'
+                ,search_machines_placeholder: 'Hledat zařízení...'
+                ,col_part: 'Díl'
+                ,col_sku_inv: 'SKU / Inv.č.'
+                ,col_category: 'Kategorie'
+                ,col_machine: 'Zařízení'
+                ,col_location: 'Umístění'
+                ,col_stock_status: 'Stav skladu'
+                ,col_value: 'Hodnota'
+                ,forgot_password: 'Zapomněli jste heslo?'
+                ,forgot_password_prompt: 'Zadejte svůj e-mail:'
+                ,forgot_password_no_user: 'Uživatel s tímto e-mailem nebyl nalezen.'
+                ,forgot_password_title: 'Reset hesla'
+                ,forgot_password_new_pass: 'Vaše nové dočasné heslo je:'
+                ,forgot_password_instructions: 'Přihlaste se s novým heslem a změňte si ho v nastavení.'
+            },
+            en: {
+                login_title: 'Login',
+                login_welcome: 'Welcome to the spare parts management system',
+                login_email_label: 'Email',
+                login_email_placeholder: 'your.email@company.com',
+                login_password_label: 'Password',
+                login_password_placeholder: '••••••••',
+                login_button: 'Log in',
+                app_title: 'Spare Parts Management System v13',
+                app_description: 'Complete solution for tracking, monitoring and managing stock inventory',
+                notifications_header: 'Notifications',
+                change_password: 'Change password',
+                logout: 'Log out',
+                nav_dashboard: 'Dashboard',
+                nav_inventory: 'Inventory',
+                nav_machines: 'Machines',
+                nav_suppliers: 'Suppliers',
+                nav_orders: 'Orders',
+                nav_transfers: 'Transfers',
+                nav_inventory_module: 'Stocktaking',
+                nav_transactions: 'Transactions',
+                nav_reports: 'Reports',
+                nav_users: 'Users',
+                nav_audit_log: 'Audit Log',
+                nav_settings: 'Settings',
+                stat_total_parts: 'Total items in stock',
+                stat_low_stock: 'Low stock',
+                stat_critical_parts: 'Critical parts',
+                stat_total_value: 'Warehouse value',
+                pinned_items_heading: 'Pinned items',
+                search_placeholder: 'Search by name, code...',
+                add_part_button: 'Add new part type',
+                stock_in_button: 'Stock in part'
+                ,filter_all_warehouses: 'All warehouses'
+                ,filter_all_categories: 'All categories'
+                ,filter_all_machines: 'All machines'
+                ,th_name: 'Name'
+                ,th_num_parts: 'Number of parts'
+                ,th_critical: 'Critical'
+                ,th_inventory_value: 'Inventory value'
+                ,th_actions: 'Actions'
+                ,th_ico: 'Company ID'
+                ,th_contact: 'Contact'
+                ,th_email: 'Email'
+                ,th_number: 'Number'
+                ,th_supplier: 'Supplier'
+                ,th_items: 'Items'
+                ,th_price: 'Price'
+                ,th_status: 'Status'
+                ,th_created: 'Created'
+                ,th_part: 'Part'
+                ,th_from: 'From'
+                ,th_to: 'To'
+                ,th_quantity: 'Quantity'
+                ,th_date: 'Date'
+                ,th_warehouse: 'Warehouse'
+                ,th_start_date: 'Start date'
+                ,th_processed_by: 'Processed by'
+                ,th_type: 'Type'
+                ,th_reason_note: 'Reason/Note'
+                ,th_user: 'User'
+                ,th_role: 'Role'
+                ,th_warehouses: 'Warehouses'
+                ,th_detail: 'Detail'
+                ,machines_no_results: 'No machines to display.'
+                ,search_machines_placeholder: 'Search machines...'
+                ,col_part: 'Part'
+                ,col_sku_inv: 'SKU / Inv.no.'
+                ,col_category: 'Category'
+                ,col_machine: 'Machine'
+                ,col_location: 'Location'
+                ,col_stock_status: 'Stock status'
+                ,col_value: 'Value'
+                ,forgot_password: 'Forgot password?'
+                ,forgot_password_prompt: 'Enter your email:'
+                ,forgot_password_no_user: 'No user found with that email.'
+                ,forgot_password_title: 'Password reset'
+                ,forgot_password_new_pass: 'Your new temporary password is:'
+                ,forgot_password_instructions: 'Log in with the new password and change it in settings.'
+            }
+        };
+
+        // Aktuální jazyk, načte se z localStorage nebo nastaví výchozí čeština
+        let currentLang = (function(){ try { return localStorage.getItem('lang') || 'cs'; } catch (e) { return 'cs'; } })();
+
+        /**
+         * Přepne jazyk a uloží volbu do localStorage.
+         * @param {string} lang Kód jazyka ('cs' nebo 'en')
+         */
+        function setLanguage(lang) {
+            currentLang = lang;
+            try { localStorage.setItem('lang', lang); } catch (e) {}
+            applyTranslations();
+            // Přegenerujeme filtry s lokalizovanými názvy, pokud funkce existuje
+            try {
+                if (typeof renderFilters === 'function') renderFilters();
+            } catch (_) {}
+            // Překreslíme tabulku s díly, pokud existuje renderPartsTable
+            try {
+                if (typeof renderPartsTable === 'function') renderPartsTable();
+            } catch (_) {}
+        }
+
+        /**
+         * Aplikuje textové překlady na všechny elementy, které mají data-i18n nebo data-placeholder-i18n atributy.
+         */
+        function applyTranslations() {
+            // přeložení textového obsahu
+            document.querySelectorAll('[data-i18n]').forEach((el) => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[currentLang] && translations[currentLang][key]) {
+                    el.textContent = translations[currentLang][key];
+                }
+            });
+            // přeložení placeholderů u vstupů
+            document.querySelectorAll('[data-placeholder-i18n]').forEach((el) => {
+                const key = el.getAttribute('data-placeholder-i18n');
+                if (translations[currentLang] && translations[currentLang][key]) {
+                    el.placeholder = translations[currentLang][key];
+                }
+            });
+            // nastavení aktivní/inaktivní třídy na vlajky
+            const flagCs = document.getElementById('flag-cs');
+            const flagEn = document.getElementById('flag-en');
+            if (flagCs && flagEn) {
+                if (currentLang === 'cs') {
+                    flagCs.classList.add('active');
+                    flagCs.classList.remove('inactive');
+                    flagEn.classList.add('inactive');
+                    flagEn.classList.remove('active');
+                } else {
+                    flagEn.classList.add('active');
+                    flagEn.classList.remove('inactive');
+                    flagCs.classList.add('inactive');
+                    flagCs.classList.remove('active');
+                }
+            }
+        }
 
 
 
@@ -1314,6 +1593,9 @@ const AUTH_DISABLED = true; // ← přepnout na false po testování
 
         // --- Inicializace ---
         document.addEventListener('DOMContentLoaded', () => {
+
+            // Nastav jazyky a přelož okamžitě po načtení stránky
+            try { applyTranslations(); } catch (_) {}
 
 // --- AUTH_DISABLED: auto-login jako Test Admin ---
 if (typeof AUTH_DISABLED !== 'undefined' && AUTH_DISABLED) {
@@ -1514,6 +1796,40 @@ if (typeof AUTH_DISABLED !== 'undefined' && AUTH_DISABLED) {
             document.getElementById('login-screen').classList.remove('hidden');
             document.getElementById('login-email').focus();
         }
+
+        /**
+         * Zobrazí dialog pro reset zapomenutého hesla. Uživatel zadá svůj e-mail a
+         * pokud je nalezen, vygenerujeme nové dočasné heslo, které se zobrazí v hlášení.
+         * Nové heslo je nastavováno na uživatelském účtu a uživatel je požádán, aby si jej po přihlášení změnil.
+         */
+        function showForgotPasswordDialog() {
+            // Požádáme uživatele o e-mail pomocí vestavěného promptu
+            let email = prompt((translations[currentLang] && translations[currentLang].forgot_password_prompt) || 'Enter your email:');
+            if (!email) {
+                return;
+            }
+            email = email.trim().toLowerCase();
+            const user = state.users.find(u => u.email.toLowerCase() === email);
+            if (!user) {
+                // Uživatel nenalezen
+                showAlert((translations[currentLang] && translations[currentLang].forgot_password_title) || 'Reset hesla', (translations[currentLang] && translations[currentLang].forgot_password_no_user) || 'User not found.', 'error');
+                return;
+            }
+            // Vygenerujeme nové heslo (8 znaků, písmena+čísla)
+            const newPass = Math.random().toString(36).slice(-8);
+            user.password = newPass;
+            user.forcePasswordChange = true;
+            try { saveStateToLocalStorage(); } catch (_) {}
+            const message = `${(translations[currentLang] && translations[currentLang].forgot_password_new_pass) || 'Your new temporary password is:'} <strong>${newPass}</strong><br>${(translations[currentLang] && translations[currentLang].forgot_password_instructions) || 'Please log in with the new password and change it in settings.'}`;
+            showAlert((translations[currentLang] && translations[currentLang].forgot_password_title) || 'Password reset', message, 'success');
+        }
+
+        // Expose the forgot password dialog function globally so it can be called
+        // from inline onclick handlers on the login screen. Without this, some
+        // browsers may not resolve the function from the global scope due to
+        // script scoping. Assigning it on the `window` object ensures it is
+        // accessible from HTML attributes.
+        window.showForgotPasswordDialog = showForgotPasswordDialog;
 
         // --- Audit Log ---
         function logAuditEvent(action, details) {
@@ -1766,16 +2082,23 @@ if (typeof AUTH_DISABLED !== 'undefined' && AUTH_DISABLED) {
 
         // --- Filtry a řazení ---
         function renderFilters() {
-            const createOptions = (selectId, data, allLabel) => {
+            const createOptions = (selectId, data, allKey) => {
                 const select = document.getElementById(selectId);
-                select.innerHTML = `<option value="all">${allLabel}</option>`;
+                // Získáme lokalizovaný popisek pro „všechny" položky; pokud není v překladech, použijeme allKey jako fallback
+                let label;
+                try {
+                    label = (translations[currentLang] && translations[currentLang][allKey]) ? translations[currentLang][allKey] : allKey;
+                } catch (_) {
+                    label = allKey;
+                }
+                select.innerHTML = `<option value="all">${label}</option>`;
                 for (const id in data) {
                     select.innerHTML += `<option value="${id}">${data[id]}</option>`;
                 }
             };
-            createOptions('warehouse-filter', state.warehouses, 'Všechny sklady');
-            createOptions('category-filter', state.categories, 'Všechny kategorie');
-            createOptions('machine-filter', state.machines, 'Všechna zařízení');
+            createOptions('warehouse-filter', state.warehouses, 'filter_all_warehouses');
+            createOptions('category-filter', state.categories, 'filter_all_categories');
+            createOptions('machine-filter', state.machines, 'filter_all_machines');
         }
 
         function getFilteredParts() {
@@ -1811,13 +2134,13 @@ if (typeof AUTH_DISABLED !== 'undefined' && AUTH_DISABLED) {
             const noResultsMessage = document.getElementById('no-results-message');
             
             const headers = [
-                { key: 'name', label: 'Díl' },
-                { key: 'code', label: 'SKU / Inv.č.' },
-                { key: 'category', label: 'Kategorie' },
-                { key: 'machine', label: 'Zařízení' },
-                { key: 'warehouse', label: 'Umístění' },
-                { key: 'currentStock', label: 'Stav Skladu' },
-                { key: 'price', label: 'Hodnota' },
+                { key: 'name', label: (translations[currentLang] && translations[currentLang].col_part) || 'Díl' },
+                { key: 'code', label: (translations[currentLang] && translations[currentLang].col_sku_inv) || 'SKU / Inv.č.' },
+                { key: 'category', label: (translations[currentLang] && translations[currentLang].col_category) || 'Kategorie' },
+                { key: 'machine', label: (translations[currentLang] && translations[currentLang].col_machine) || 'Zařízení' },
+                { key: 'warehouse', label: (translations[currentLang] && translations[currentLang].col_location) || 'Umístění' },
+                { key: 'currentStock', label: (translations[currentLang] && translations[currentLang].col_stock_status) || 'Stav skladu' },
+                { key: 'price', label: (translations[currentLang] && translations[currentLang].col_value) || 'Hodnota' },
             ];
             thead.innerHTML = '<tr>' + headers.map(h => {
                 const isSorted = state.sortConfig.key === h.key;
